@@ -15,10 +15,7 @@ int main() {
     srand (time(NULL));
 
     int msfree = 0;
-    timer.restart();
-    mouse_pos = sf::Mouse::getPosition(window);
-    mouse_pos_vec.x = mouse_pos.x;
-    mouse_pos_vec.y = mouse_pos.y;
+
     //mouse position transformations
     while(window.isOpen()) {
         mouse_pos = sf::Mouse::getPosition(window);
