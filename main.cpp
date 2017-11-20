@@ -26,7 +26,7 @@ int main() {
         //mouse input capture
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             //spawn particle in a 5 x 5 box around mouse
-            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1);
+            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),2);
             //	dump_grid();
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
             //spawn particle in a 3 x 3 box around mouse
@@ -38,13 +38,26 @@ int main() {
         //cout << grid[int(mouse_pos_vec.x / 5)][int(mouse_pos_vec.y / 5)] << endl;
         for(i = 0; i < part_ind; i++) {
             if(parts[i].update()) {
+                //collision
                 if(grid[parts[i].cur_grid_x][parts[i].cur_grid_y] != -1) {
-                    parts[i].cur_grid_x = parts[i].lst_grid_x;
-                    parts[i].cur_grid_y = parts[i].lst_grid_y;
-                    parts[i].position -= parts[i].velocity;
-                    //if(parts[grid[parts[i].cur_grid_x][parts[i].cur_grid_y] + 5].rest) {
-                        parts[i].rest = true;
+                    //handle collision for different particle types
+                    int cur_index = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
+                    switch(parts[i].type){
+                        case 0: case 1:
+                            parts[i].cur_grid_x = parts[i].lst_grid_x;
+                            parts[i].cur_grid_y = parts[i].lst_grid_y;
+                            parts[i].position -= parts[i].velocity;
+                            //if(parts[grid[parts[i].cur_grid_x][parts[i].cur_grid_y] + 5].rest) {
+                            parts[i].rest = true;
+                        case 2:
+                            parts[cur_index].type = 2;
+                            parts[cur_index].velocity = sf::Vector2f(0,1);
+                            parts[i].cur_grid_x = parts[i].lst_grid_x;
+                            parts[i].cur_grid_y = parts[i].lst_grid_y;
+                            parts[i].position -= parts[i].velocity;
                     //}
+                    }
+                //no collision
                 } else {
                     grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = i;
                     grid[parts[i].lst_grid_x][parts[i].lst_grid_y] = -1;
@@ -95,7 +108,7 @@ int spawn_particle(sf::Vector2f in_position, sf::Color col,int type) {
         parts[part_ind].type = type;
         //gravity
         //only set gravity for particle type 1
-        (type == 1 ? parts[part_ind].velocity = sf::Vector2f(0,1) : parts[part_ind].velocity = sf::Vector2f(0,0));
+        (type >= 1 ? parts[part_ind].velocity = sf::Vector2f(0,1) : parts[part_ind].velocity = sf::Vector2f(0,0));
         //for type 0 set rest to true on creation
         (type == 0 ? parts[part_ind].rest = true : false);
         //grid[int(in_position.x / 5)][int(in_position.y / 5)] = part_ind;
@@ -115,8 +128,8 @@ int init_grid() {
 }
 int dump_grid() {
     int i,j;
-    for(i = 0; i < 160; i++) {
-        for(j = 0; j < 90; j++) {
+    for(i = 0; i < GWIDTH / BLK_SIZE; i++) {
+        for(j = 0; j < GHEIGHT / BLK_SIZE; j++) {
             cout << grid[i][j];
         }
         cout << endl;
