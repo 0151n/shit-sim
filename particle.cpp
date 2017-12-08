@@ -4,7 +4,12 @@
  * 0. static/non gravity affected
  * 1. gravity affected
  * 2. collider/ turns type zeros into type 1s.
- * */
+ *
+ * density
+ * 1 = solid
+ * < 1 and > 0.5 = liquid
+ * < 0.5 = gas
+ */
 
 
 
@@ -17,8 +22,8 @@ Particle::Particle ( sf::Vector2f in_pos, sf::Vector2f in_vel, sf::Color in_col,
     density = in_den;
     active = false;
     rest = false;
-    cur_grid_x = ( int ( position.x ) / 5 ) * 5 + 3;
-    cur_grid_y = ( int ( position.y ) / 5 ) * 5 + 3;
+    cur_grid_x = ( int ( position.x ) / BLK_SIZE );
+    cur_grid_y = ( int ( position.y ) / BLK_SIZE );
 }
 Particle::Particle()
 {
@@ -55,3 +60,4 @@ int Particle::update()
         return 1;
     }
 }
+

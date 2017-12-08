@@ -24,15 +24,20 @@ int main() {
         timer.restart();
         
         //mouse input capture
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)  && sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             //spawn particle in a 5 x 5 box around mouse
-            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),2);
+            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1,0.5f);
+            //	dump_grid();
+        } else if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            //spawn particle in a 5 x 5 box around mouse
+            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1,1.0f);
             //	dump_grid();
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
             //spawn particle in a 3 x 3 box around mouse
-            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 3) * BLK_SIZE,mouse_pos_vec.y + (rand() % 3) * BLK_SIZE),sf::Color(100,100,30),0);
+            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 3) * BLK_SIZE,mouse_pos_vec.y + (rand() % 3) * BLK_SIZE),sf::Color(100,100,30),0,1);
             //	dump_grid();
         }
+        
         
         //integrate particles
         //cout << grid[int(mouse_pos_vec.x / 5)][int(mouse_pos_vec.y / 5)] << endl;
@@ -41,7 +46,7 @@ int main() {
                 //collision
                 if(grid[parts[i].cur_grid_x][parts[i].cur_grid_y] != -1) {
                     //handle collision for different particle types
-                    int cur_index = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
+                    int lst_index = grid[parts[i].lst_grid_x][parts[i].lst_grid_y];
                     switch(parts[i].type){
                         case 0: case 1:
                             parts[i].cur_grid_x = parts[i].lst_grid_x;
@@ -49,18 +54,44 @@ int main() {
                             parts[i].position -= parts[i].velocity;
                             //if(parts[grid[parts[i].cur_grid_x][parts[i].cur_grid_y] + 5].rest) {
                             parts[i].rest = true;
+                            break;
                         case 2:
-                            parts[cur_index].type = 2;
-                            parts[cur_index].velocity = sf::Vector2f(0,1);
+                            parts[i].type = 2;
+                            parts[i].velocity = sf::Vector2f(0,1);
                             parts[i].cur_grid_x = parts[i].lst_grid_x;
                             parts[i].cur_grid_y = parts[i].lst_grid_y;
                             parts[i].position -= parts[i].velocity;
+                            break;
                     //}
                     }
                 //no collision
                 } else {
                     grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = i;
                     grid[parts[i].lst_grid_x][parts[i].lst_grid_y] = -1;
+                    parts[i].rest = false;
+                }
+            }
+            //fluid operations
+            if(parts[i].density < 1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 && parts[i].rest){
+                //change color to indicate fluid
+                parts[i].color = sf::Color(150,100,50);
+                //check for free space below and to the left or right
+                //check bottom right
+                if(grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y + 1] == -1){
+                        grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y + 1] = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
+                        grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = -1;
+                        parts[i].cur_grid_x++;
+                        parts[i].cur_grid_y++;
+                        parts[i].position = sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,
+                                                            (parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK); 
+                //check bottom left
+                } else if(grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y + 1] == -1){
+                        grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y + 1] = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
+                        grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = -1;
+                        parts[i].cur_grid_x--;
+                        parts[i].cur_grid_y++;
+                        parts[i].position = sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,
+                                                            (parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK);                                       
                 }
             }
         }
@@ -100,12 +131,14 @@ int update() {
  * @param col color of the particle
  * @param type type of the particle
  */
-int spawn_particle(sf::Vector2f in_position, sf::Color col,int type) {
+int spawn_particle(sf::Vector2f in_position, sf::Color col,int type,float den) {
     if(grid[int(in_position.x / BLK_SIZE)][int(in_position.y / BLK_SIZE)] == -1) {
         parts[part_ind].position = in_position;
         parts[part_ind].color = col;
         parts[part_ind].active = true;
         parts[part_ind].type = type;
+        parts[part_ind].density = den;
+
         //gravity
         //only set gravity for particle type 1
         (type >= 1 ? parts[part_ind].velocity = sf::Vector2f(0,1) : parts[part_ind].velocity = sf::Vector2f(0,0));

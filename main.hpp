@@ -13,7 +13,7 @@ sf::Time elapsed;
 int draw();
 int init();
 int init_grid();
-int spawn_particle(sf::Vector2f in_position, sf::Color col,int type);
+int spawn_particle(sf::Vector2f in_position, sf::Color col,int type,float den);
 int dump_grid();
 //mouse position
 sf::Vector2i mouse_pos;
