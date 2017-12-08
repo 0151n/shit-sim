@@ -3,21 +3,16 @@
 
 using namespace std;
 
-Particle parts[10000];
-int x = 0;
-int i = 0;
-int part_ind = 0;
-
 int main() {
+    //max milliseconds - milliseconds used in a given frame
+    int msfree = 0;
     //run intilization function
     init();
     //initialise random function
     srand (time(NULL));
 
-    int msfree = 0;
-
-    //mouse position transformations
     while(window.isOpen()) {
+        //mouse position transformations
         mouse_pos = sf::Mouse::getPosition(window);
         mouse_pos_vec.x = mouse_pos.x;
         mouse_pos_vec.y = mouse_pos.y;
@@ -78,6 +73,7 @@ int main() {
                 //check for free space below and to the left or right
                 //check bottom right
                 if(grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y + 1] == -1){
+                    
                         grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y + 1] = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
                         grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = -1;
                         parts[i].cur_grid_x++;
@@ -102,8 +98,9 @@ int main() {
         window.clear();
         draw();
         window.display();
+        //calculate msfree
         msfree = MSPERFRAME - timer.getElapsedTime().asMilliseconds();
-        //cout << msfree << endl;
+        //sleep until msfree is met
         if(msfree > 0)sf::sleep(sf::milliseconds(msfree));
     }
 }
@@ -112,15 +109,48 @@ int draw() {
     int i = 0;
     for(i = 0; i < part_ind; i++) {
         if(parts[i].active) {
-            dot.setPosition(sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,(parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK));
-            dot.setFillColor(parts[i].color);
-            window.draw(dot);
+            if(grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y] != -1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 &&
+                grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y] == -1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y - 1] == -1  && SMOOTH){
+                cornerl.setPosition(sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,(parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK));
+                cornerl.setFillColor(parts[i].color);
+                window.draw(cornerl);
+            } else if(grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y] != -1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 &&
+                grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y] == -1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y - 1] == -1 && SMOOTH){
+                cornerr.setPosition(sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,(parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK));
+                cornerr.setFillColor(parts[i].color);
+                window.draw(cornerr);
+            } else if(grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y] == -1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 &&
+                grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y] == -1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y - 1] == -1 && SMOOTH){
+                pointy.setPosition(sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,(parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK));
+                pointy.setFillColor(parts[i].color);
+                window.draw(pointy);
+            } else {
+                dot.setPosition(sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,(parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK));
+                dot.setFillColor(parts[i].color);
+                window.draw(dot);
+            }
         }
     }
 }
 int init() {
     std::srand(std::time(0));
-    dot.setOrigin(3,3);
+    //dot.setOrigin(3,3);
+    //set up graphics shapes
+    cornerl.setPointCount(3);
+    cornerl.setPoint(0,sf::Vector2f(BLK_SIZE,0));
+    cornerl.setPoint(1,sf::Vector2f(BLK_SIZE,BLK_SIZE));
+    cornerl.setPoint(2,sf::Vector2f(0,BLK_SIZE));
+    //cornerl.setOrigin(3,3);
+    cornerr.setPointCount(3);
+    cornerr.setPoint(0,sf::Vector2f(0,0));
+    cornerr.setPoint(1,sf::Vector2f(BLK_SIZE,BLK_SIZE));
+    cornerr.setPoint(2,sf::Vector2f(0,BLK_SIZE));
+    //cornerr.setOrigin(3,3);
+    pointy.setPointCount(3);
+    pointy.setPoint(0,sf::Vector2f(0,BLK_SIZE));
+    pointy.setPoint(1,sf::Vector2f(BLK_SIZE / 2,0));
+    pointy.setPoint(2,sf::Vector2f(BLK_SIZE,BLK_SIZE));
+    //initialise grid to -1
     init_grid();
 }
 int update() {
@@ -130,6 +160,7 @@ int update() {
  * @param in_position x,y position of the particle
  * @param col color of the particle
  * @param type type of the particle
+ * @param den density of the particle
  */
 int spawn_particle(sf::Vector2f in_position, sf::Color col,int type,float den) {
     if(grid[int(in_position.x / BLK_SIZE)][int(in_position.y / BLK_SIZE)] == -1) {
