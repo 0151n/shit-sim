@@ -13,7 +13,7 @@
 
 
 
-Particle::Particle ( sf::Vector2f in_pos, sf::Vector2f in_vel, sf::Color in_col, int in_ty, int in_den )
+Particle::Particle ( sf::Vector2f in_pos, sf::Vector2f in_vel, sf::Color in_col, int in_ty, float in_den )
 {
     position = in_pos;
     velocity = in_vel;

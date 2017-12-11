@@ -15,9 +15,9 @@ class Particle{
 		bool active;
 		bool rest;
 		int type;
-		int density;
+		float density;
 		Particle();
-		Particle(sf::Vector2f in_pos, sf::Vector2f in_vel, sf::Color in_col, int in_ty, int in_den);
+		Particle(sf::Vector2f in_pos, sf::Vector2f in_vel, sf::Color in_col, int in_ty, float in_den);
 		int update();
 };
 		

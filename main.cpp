@@ -1,4 +1,5 @@
 #include"main.hpp"
+#include <assert.h>
 #define MSPERFRAME 1000/60
 
 using namespace std;
@@ -21,8 +22,10 @@ int main() {
         //mouse input capture
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)  && sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             //spawn particle in a 5 x 5 box around mouse
-            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1,0.5f);
-            //	dump_grid();
+            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1,0.6f);
+        } else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            //spawn particle in a 5 x 5 box around mouse
+            spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1,0.25f);
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             //spawn particle in a 5 x 5 box around mouse
             spawn_particle(sf::Vector2f(mouse_pos_vec.x + (rand() % 5) * BLK_SIZE,mouse_pos_vec.y  + (rand() % 5) * BLK_SIZE),sf::Color(100,100,30),1,1.0f);
@@ -67,8 +70,10 @@ int main() {
                 }
             }
             //fluid operations
-            if(parts[i].density < 1 && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 && parts[i].rest){
+            //semi-liquid
+            if(parts[i].density < 1.0f && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 && parts[i].rest){
                 //change color to indicate fluid
+                //set semi-liquid color, just for testing
                 parts[i].color = sf::Color(150,100,50);
                 //check for free space below and to the left or right
                 //check bottom right
@@ -88,6 +93,28 @@ int main() {
                         parts[i].cur_grid_y++;
                         parts[i].position = sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,
                                                             (parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK);                                       
+                }
+                //full-liquid
+                if(parts[i].density <= 0.5f){
+                    //set liquid color, just for testing
+                    parts[i].color = sf::Color(0,85,225);
+                    //check for free space to the left or right
+                    //check right
+                    if(grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y] == -1){
+                        
+                            grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y] = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
+                            grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = -1;
+                            parts[i].cur_grid_x++;
+                            parts[i].position = sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,
+                                                                (parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK); 
+                    //check bottom left
+                    } else if(grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y] == -1){
+                            grid[parts[i].cur_grid_x - 1][parts[i].cur_grid_y] = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
+                            grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = -1;
+                            parts[i].cur_grid_x--;
+                            parts[i].position = sf::Vector2f((parts[i].cur_grid_x * BLK_SIZE) + HALF_BLK,
+                                                                (parts[i].cur_grid_y * BLK_SIZE) + HALF_BLK);                                       
+                    }
                 }
             }
         }
