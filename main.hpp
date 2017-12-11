@@ -18,6 +18,7 @@ int init();
 int init_grid();
 int spawn_particle(sf::Vector2f in_position, sf::Color col,int type,float den);
 int dump_grid();
+int swap_particles(int i,int j);
 //mouse position
 sf::Vector2i mouse_pos;
 sf::Vector2f mouse_pos_vec;

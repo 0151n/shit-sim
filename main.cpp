@@ -13,6 +13,11 @@ int main() {
     srand (time(NULL));
 
     while(window.isOpen()) {
+        
+        /////////////////
+        // User Input //
+        ////////////////
+        
         //mouse position transformations
         mouse_pos = sf::Mouse::getPosition(window);
         mouse_pos_vec.x = mouse_pos.x;
@@ -39,18 +44,26 @@ int main() {
         
         //integrate particles
         //cout << grid[int(mouse_pos_vec.x / 5)][int(mouse_pos_vec.y / 5)] << endl;
+        ////////////////////////
+        // Collision Handling //
+        ////////////////////////
         for(i = 0; i < part_ind; i++) {
             if(parts[i].update()) {
                 //collision
                 if(grid[parts[i].cur_grid_x][parts[i].cur_grid_y] != -1) {
                     //handle collision for different particle types
-                    int lst_index = grid[parts[i].lst_grid_x][parts[i].lst_grid_y];
+                    int cur_index = grid[parts[i].cur_grid_x][parts[i].cur_grid_y];
                     switch(parts[i].type){
-                        case 0: case 1:
+                        case 0: 
                             parts[i].cur_grid_x = parts[i].lst_grid_x;
                             parts[i].cur_grid_y = parts[i].lst_grid_y;
                             parts[i].position -= parts[i].velocity;
-                            //if(parts[grid[parts[i].cur_grid_x][parts[i].cur_grid_y] + 5].rest) {
+                            parts[i].rest = true;
+                            break;
+                        case 1:
+                            parts[i].cur_grid_x = parts[i].lst_grid_x;
+                            parts[i].cur_grid_y = parts[i].lst_grid_y;
+                            parts[i].position -= parts[i].velocity;
                             parts[i].rest = true;
                             break;
                         case 2:
@@ -60,7 +73,6 @@ int main() {
                             parts[i].cur_grid_y = parts[i].lst_grid_y;
                             parts[i].position -= parts[i].velocity;
                             break;
-                    //}
                     }
                 //no collision
                 } else {
@@ -69,12 +81,17 @@ int main() {
                     parts[i].rest = false;
                 }
             }
-            //fluid operations
+            //////////////////////
+            // Fluid Operations //
+            //////////////////////
             //semi-liquid
             if(parts[i].density < 1.0f && grid[parts[i].cur_grid_x][parts[i].cur_grid_y + 1] != -1 && parts[i].rest){
                 //change color to indicate fluid
                 //set semi-liquid color, just for testing
                 parts[i].color = sf::Color(150,100,50);
+                //make sure rarest particle is on top
+                if(parts[i].density < parts[grid[parts[i].cur_grid_x][parts[i].cur_grid_y - 1]].density && grid[parts[i].cur_grid_x][parts[i].cur_grid_y - 1] != -1)
+                    swap_particles(i,grid[parts[i].cur_grid_x][parts[i].cur_grid_y - 1]);
                 //check for free space below and to the left or right
                 //check bottom right
                 if(grid[parts[i].cur_grid_x + 1][parts[i].cur_grid_y + 1] == -1){
@@ -118,6 +135,9 @@ int main() {
                 }
             }
         }
+        //////////////////////////////////////
+        // Updating shit, Drawing to Screen //
+        //////////////////////////////////////
         sf::Event event;
         while(window.pollEvent(event)) {
             if(event.type == sf::Event::Closed)window.close();
@@ -208,6 +228,18 @@ int spawn_particle(sf::Vector2f in_position, sf::Color col,int type,float den) {
         part_ind++;
         
     }
+}
+//swap two particles give their indexs
+int swap_particles(int i,int j){
+    int tmp_x,tmp_y;
+    tmp_x = parts[i].cur_grid_x;
+    tmp_y = parts[i].cur_grid_y;
+    parts[i].cur_grid_x = parts[j].cur_grid_x;
+    parts[i].cur_grid_y = parts[j].cur_grid_y;
+    parts[j].cur_grid_x = tmp_x;
+    parts[j].cur_grid_y = tmp_y;
+    grid[tmp_x][tmp_y] = j;
+    grid[parts[i].cur_grid_x][parts[i].cur_grid_y] = i;
 }
 int init_grid() {
     int i,j;
