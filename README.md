@@ -1,4 +1,4 @@
-# shit-sim
+# particle simulator
 
 ## A simple particle simulator written in C++ using SFML
 
